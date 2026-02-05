@@ -74,7 +74,7 @@ const BundleForm = () => {
     };
     const [showMenuOptions, setShowMenuOptions] = useState(false);
     const [sessionId, setSessionId] = useState(generateSessionId());
-    const API_BASE_URL = import.meta.env.DEV ? '/api/vodafone' : 'https://gravitas.ismartghana.com/vodafone';
+    const API_BASE_URL = import.meta.env.DEV ? '/api/vodafone' : 'https://gravitas.ismartghana.com/api/vodafone';
 
     const networks = [
         { name: 'Telecel', color: 'bg-telecel-red text-white', icon: '🔴' },
@@ -126,7 +126,11 @@ const BundleForm = () => {
                         }
                     } else {
                         console.error('API call failed:', response.status, response.statusText);
-                        alert(`Request failed: ${response.status} ${response.statusText}`);
+                        if (response.status === 404) {
+                            alert('API endpoint not found (404). The API URL may be incorrect. Please check the server configuration.');
+                        } else {
+                            alert(`Request failed: ${response.status} ${response.statusText}`);
+                        }
                     }
                 } catch (error) {
                     console.error('Error submitting form:', error);
