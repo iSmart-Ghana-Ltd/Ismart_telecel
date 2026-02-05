@@ -74,6 +74,7 @@ const BundleForm = () => {
     };
     const [showMenuOptions, setShowMenuOptions] = useState(false);
     const [sessionId, setSessionId] = useState(generateSessionId());
+    const API_BASE_URL = import.meta.env.DEV ? '/api/vodafone' : 'https://gravitas.ismartghana.com/vodafone';
 
     const networks = [
         { name: 'Telecel', color: 'bg-telecel-red text-white', icon: '🔴' },
@@ -102,7 +103,7 @@ const BundleForm = () => {
 
                     console.log('Sending initial request:', payload);
 
-                    const response = await fetch('/api/vodafone', {
+                    const response = await fetch(API_BASE_URL, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'text/xml',
@@ -156,7 +157,7 @@ const BundleForm = () => {
 
                 console.log('Sending student ID:', payload);
 
-                const response = await fetch('/api/vodafone', {
+                const response = await fetch(API_BASE_URL, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'text/xml',
@@ -225,7 +226,7 @@ const BundleForm = () => {
 
             console.log('Sending bundle selection:', payload);
 
-            const response = await fetch('/api/vodafone', {
+            const response = await fetch(API_BASE_URL, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'text/xml',
@@ -289,7 +290,7 @@ const BundleForm = () => {
 
             console.log('Sending confirmation:', payload);
 
-            const response = await fetch('/api/vodafone', {
+            const response = await fetch(API_BASE_URL, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'text/xml',
