@@ -130,7 +130,11 @@ const BundleForm = () => {
                     }
                 } catch (error) {
                     console.error('Error submitting form:', error);
-                    alert('An error occurred. Please check your connection and try again.');
+                    if (error.message.includes('CORS') || error.message.includes('Cross-Origin')) {
+                        alert('CORS Error: The API server is not configured for cross-origin requests. Please contact the server administrator to enable CORS for this domain.');
+                    } else {
+                        alert('An error occurred. Please check your connection and try again.');
+                    }
                 } finally {
                     setIsLoading(false);
                 }
@@ -191,7 +195,11 @@ const BundleForm = () => {
                 }
             } catch (error) {
                 console.error('Error submitting student ID:', error);
-                alert('An error occurred. Please check your connection and try again.');
+                if (error.message.includes('CORS') || error.message.includes('Cross-Origin')) {
+                    alert('CORS Error: The API server is not configured for cross-origin requests. Please contact the server administrator to enable CORS for this domain.');
+                } else {
+                    alert('An error occurred. Please check your connection and try again.');
+                }
             } finally {
                 setIsLoading(false);
             }
@@ -267,7 +275,11 @@ const BundleForm = () => {
             }
         } catch (error) {
             console.error('Error activating bundle:', error);
-            alert('An error occurred. Please check your connection and try again.');
+            if (error.message.includes('CORS') || error.message.includes('Cross-Origin')) {
+                alert('CORS Error: The API server is not configured for cross-origin requests. Please contact the server administrator to enable CORS for this domain.');
+            } else {
+                alert('An error occurred. Please check your connection and try again.');
+            }
         } finally {
             setIsActivating(false);
         }
@@ -316,7 +328,11 @@ const BundleForm = () => {
             }
         } catch (error) {
             console.error('Error sending confirmation:', error);
-            alert('An error occurred. Please check your connection and try again.');
+            if (error.message.includes('CORS') || error.message.includes('Cross-Origin')) {
+                alert('CORS Error: The API server is not configured for cross-origin requests. Please contact the server administrator to enable CORS for this domain.');
+            } else {
+                alert('An error occurred. Please check your connection and try again.');
+            }
         } finally {
             setIsConfirming(false);
         }
