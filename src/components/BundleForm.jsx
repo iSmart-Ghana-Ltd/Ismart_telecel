@@ -10,7 +10,7 @@ const BundleForm = () => {
     const [network, setNetwork] = useState('Telecel');
     const [bundleCode, setBundleCode] = useState('');
     const [phone, setPhone] = useState('');
-    const [studentStaffId, setStudentStaffId] = useState('');
+    const [studentId, setStudentId] = useState('');
     const [showIdField, setShowIdField] = useState(false);
     const [showBundleModal, setShowBundleModal] = useState(false);
     const [showConfirmationModal, setShowConfirmationModal] = useState(false);
@@ -145,7 +145,7 @@ const BundleForm = () => {
             }
         } else if (!showBundleModal) {
             // Step 2: Send student ID and get bundle options
-            if (!studentStaffId.trim()) {
+            if (!studentId.trim()) {
                 alert('Please enter your student ID');
                 return;
             }
@@ -157,7 +157,7 @@ const BundleForm = () => {
             try {
                 const payload = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ussd>
-    <msg>${studentStaffId}</msg>
+    <msg>${studentId}</msg>
     <sessionid>${sessionId}</sessionid>
     <msisdn>${formattedPhone}</msisdn>
     <type>1</type>
@@ -346,7 +346,7 @@ const BundleForm = () => {
     const resetForm = () => {
         setBundleCode('');
         setPhone('');
-        setStudentStaffId('');
+        setStudentId('');
         setNetwork('Telecel');
         setShowIdField(false);
         setShowBundleModal(false);
@@ -364,8 +364,8 @@ const BundleForm = () => {
     return (
         <div id="bundles" className="bg-white p-8 rounded-3xl shadow-lg border border-gray-100 flex flex-col justify-center h-[600px]">
             <div className="mb-8">
-                <h2 className="text-2xl font-bold text-gray-800 mb-2">Get Your Staff & Student Bundle</h2>
-                <p className="text-gray-600 mb-6">Exclusive offers for educational institutions</p>
+                <h2 className="text-2xl font-bold text-gray-800 mb-2">Get Your Student Bundle</h2>
+                <p className="text-gray-600 mb-6">Exclusive offers for students</p>
                 
                 <div className="bg-gradient-to-r from-telecel-red/10 to-red-600/10 p-4 rounded-xl mb-6">
                     <div className="flex items-center gap-3">
@@ -409,12 +409,12 @@ const BundleForm = () => {
 
                 {showIdField && !showBundleModal && (
                     <div className="animate-fadeIn">
-                        <label className="block text-gray-700 font-semibold mb-2">Student/Staff ID</label>
+                        <label className="block text-gray-700 font-semibold mb-2">Student ID</label>
                         <input
                             type="text"
-                            placeholder="Enter your student or staff ID"
-                            value={studentStaffId}
-                            onChange={(e) => setStudentStaffId(e.target.value)}
+                            placeholder="Enter your student ID"
+                            value={studentId}
+                            onChange={(e) => setStudentId(e.target.value)}
                             className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-telecel-red/20 focus:border-telecel-red transition-all"
                             required
                         />
