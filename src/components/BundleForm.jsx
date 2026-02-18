@@ -376,7 +376,7 @@ const BundleForm = () => {
                         />
                         <div>
                             <div className="font-semibold text-gray-800">Network: Telecel</div>
-                            <div className="text-sm text-gray-600">Exclusive staff & student rates</div>
+                            <div className="text-sm text-gray-600">Exclusive student rates</div>
                         </div>
                     </div>
                 </div>
