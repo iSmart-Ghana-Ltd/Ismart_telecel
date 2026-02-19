@@ -351,90 +351,29 @@ const BundleForm = () => {
         } finally {
             setIsConfirming(false);
         }
-    } catch (error) {
-        console.error('Error activating bundle:', error);
-        if (error.message.includes('CORS') || error.message.includes('Cross-Origin')) {
-            alert('CORS Error: The API server is not configured for cross-origin requests. Please contact the server administrator to enable CORS for this domain.');
-        } else {
-            alert('An error occurred. Please check your connection and try again.');
-        }
-    } finally {
+    };
+
+    // Reset form helper
+    const resetForm = () => {
+        // Keep bundle code, reset everything else
+        setPhone('');
+        setStudentId('');
+        setNetwork('Telecel');
+        setShowIdField(false);
+        setShowBundleModal(false);
+        setShowConfirmationModal(false);
+        setShowCancellationModal(false);
+        setShowSuccessModal(false);
+        setSelectedBundle('');
+        setApiResponse(null);
+        setBundleOptions([]);
+        setSessionId(generateSessionId());
         setIsActivating(false);
-    }
-};
-
-// Handle confirmation response
-const handleConfirmation = async (confirm) => {
-    setIsConfirming(true);
-    try {
-        // Format phone number before submission
-        const formattedPhone = formatPhoneNumber(phone);
-        
-        const payload = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<ussd>
-    <msg>${confirm ? '1' : '2'}</msg>
-    <sessionid>${sessionId}</sessionid>
-    <msisdn>${formattedPhone}</msisdn>
-    <type>1</type>
-</ussd>`;
-
-        console.log('Sending confirmation:', payload);
-
-        const response = await fetch(API_BASE_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'text/xml',
-                'Accept': 'text/xml',
-            },
-            body: payload
-        });
-
-        const responseText = await response.text();
-        console.log('Confirmation Response:', responseText);
-
-        if (response.ok) {
-            if (confirm) {
-                setShowConfirmationModal(false);
-                setShowSuccessModal(true);
-            } else {
-                setShowConfirmationModal(false);
-                setShowCancellationModal(true);
-            }
-        } else {
-            console.error('API call failed:', response.status, response.statusText);
-            alert(`Confirmation failed: ${response.status} ${response.statusText}`);
-        }
-    } catch (error) {
-        console.error('Error sending confirmation:', error);
-        if (error.message.includes('CORS') || error.message.includes('Cross-Origin')) {
-            alert('CORS Error: The API server is not configured for cross-origin requests. Please contact the server administrator to enable CORS for this domain.');
-        } else {
-            alert('An error occurred. Please check your connection and try again.');
-        }
-    } finally {
         setIsConfirming(false);
-    }
-};
+    };
 
-// Reset form helper
-const resetForm = () => {
-    // Keep bundle code, reset everything else
-    setPhone('');
-    setStudentId('');
-    setShowIdField(false);
-    setShowBundleModal(false);
-    setShowConfirmationModal(false);
-    setShowCancellationModal(false);
-    setShowSuccessModal(false);
-    setIsActivating(false);
-    setIsConfirming(false);
-    setIsLoading(false);
-    setApiResponse(null);
-    setBundleOptions([]);
-    setSelectedBundle('');
-    // Generate new session ID for fresh start
-    setSessionId(generateSessionId());
-};
+    return (
+        <div id="bundles" className="bg-white p-8 rounded-3xl shadow-lg border border-gray-100 flex flex-col justify-center h-[600px]">
             <div className="mb-8">
                 <h2 className="text-2xl font-bold text-gray-800 mb-2">Get Your Student Bundle</h2>
                 <p className="text-gray-600 mb-6">Exclusive offers for students</p>
