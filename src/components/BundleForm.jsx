@@ -387,7 +387,7 @@ const BundleForm = () => {
                     <label className="block text-gray-700 font-semibold mb-2">Bundle Code</label>
                     <input
                         type="text"
-                        placeholder="Enter your institution bundle code"
+                        placeholder="Enter your student bundle code"
                         value={bundleCode}
                         onChange={(e) => setBundleCode(e.target.value)}
                         className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-telecel-red/20 focus:border-telecel-red transition-all"

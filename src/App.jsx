@@ -31,7 +31,7 @@ function App() {
                 <span className="text-white text-2xl font-bold">1</span>
               </div>
               <h3 className="font-semibold text-lg mb-2">Get Your Code</h3>
-              <p className="text-gray-600">Contact your institution to receive your exclusive student bundle code.</p>
+              <p className="text-gray-600">Contact your student administration to receive your exclusive student bundle code.</p>
             </div>
             <div className="text-center">
               <div className="w-16 h-16 bg-telecel-red rounded-full flex items-center justify-center mx-auto mb-4">
@@ -55,15 +55,15 @@ function App() {
           <div className="space-y-6">
             <div className="bg-gray-50 p-6 rounded-xl">
               <h3 className="font-semibold text-lg mb-2">Who is eligible for student bundles?</h3>
-              <p className="text-gray-600">These exclusive bundles are available to students of participating educational institutions.</p>
+              <p className="text-gray-600">These exclusive bundles are available to students.</p>
             </div>
             <div className="bg-gray-50 p-6 rounded-xl">
-              <h3 className="font-semibold text-lg mb-2">How do I get my institution's bundle code?</h3>
-              <p className="text-gray-600">Contact your institution's administration or IT department to receive your unique bundle code.</p>
+              <h3 className="font-semibold text-lg mb-2">How do I get my student bundle code?</h3>
+              <p className="text-gray-600">Contact your student administration to receive your unique bundle code.</p>
             </div>
             <div className="bg-gray-50 p-6 rounded-xl">
               <h3 className="font-semibold text-lg mb-2">Can I use multiple bundle codes?</h3>
-              <p className="text-gray-600">Each bundle code can only be used once per phone number. Please check with your institution for multiple activation options.</p>
+              <p className="text-gray-600">Each bundle code can only be used once per phone number. Please check with your student administration for multiple activation options.</p>
             </div>
           </div>
         </section>
