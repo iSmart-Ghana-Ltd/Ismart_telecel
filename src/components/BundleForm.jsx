@@ -610,12 +610,7 @@ const BundleForm = () => {
                 </div>
             )}
 
-            <div className="mt-6 text-center">
-                <p className="text-sm text-gray-500">
-                    Need help? <button className="text-[#E30613] hover:underline font-medium">Contact Support</button>
-                </p>
-            </div>
-        </div>
+                    </div>
     );
 };
 

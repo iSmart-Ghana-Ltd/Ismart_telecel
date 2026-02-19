@@ -68,19 +68,7 @@ function App() {
           </div>
         </section>
 
-        <section id="contact" className="mt-20 max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl font-bold text-gray-800 mb-4">Need Help?</h2>
-          <p className="text-gray-600 mb-8">Our support team is here to assist you with any questions about your student bundles.</p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="bg-[#E30613] text-white px-8 py-3 rounded-full font-semibold hover:bg-[#CC050F] transition-colors">
-              Call Support
-            </button>
-            <button className="border-2 border-[#E30613] text-[#E30613] px-8 py-3 rounded-full font-semibold hover:bg-[#E30613] hover:text-white transition-colors">
-              Email Support
-            </button>
-          </div>
-        </section>
-      </main>
+              </main>
 
       <Footer />
 
