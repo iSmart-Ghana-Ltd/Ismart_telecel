@@ -27,7 +27,7 @@ const Header = () => {
                             <div className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#E30613] to-[#CC050F]">
                                 Telecel
                             </div>
-                            <div className="text-xs text-gray-500">Staff & Student Bundles</div>
+                            <div className="text-xs text-gray-500">Student Bundles</div>
                         </div>
                     </div>
 

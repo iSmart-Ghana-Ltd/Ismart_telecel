@@ -17,9 +17,9 @@ const HeroSection = () => {
                 <div className="flex gap-1 mb-2">
                     {[1, 2, 3].map(i => <div key={i} className="w-2 h-2 rounded-full bg-white/80" />)}
                 </div>
-                <h3 className="text-2xl font-bold mb-1">Staff & Student Bundle</h3>
+                <h3 className="text-2xl font-bold mb-1">Student Bundle</h3>
                 <p className="text-white/90 text-sm">
-                    Exclusive Telecel bundles designed for educational institutions and their staff. Enjoy special rates and benefits.
+                    Exclusive Telecel bundles designed for students. Enjoy special rates and benefits.
                 </p>
             </div>
         </div>
