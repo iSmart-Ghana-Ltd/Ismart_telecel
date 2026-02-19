@@ -31,7 +31,7 @@ function App() {
                 <span className="text-white text-2xl font-bold">1</span>
               </div>
               <h3 className="font-semibold text-lg mb-2">Get Your Code</h3>
-              <p className="text-gray-600">Contact your institution to receive your exclusive staff/student bundle code</p>
+              <p className="text-gray-600">Contact your institution to receive your exclusive student bundle code.</p>
             </div>
             <div className="text-center">
               <div className="w-16 h-16 bg-telecel-red rounded-full flex items-center justify-center mx-auto mb-4">

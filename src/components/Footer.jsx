@@ -10,7 +10,7 @@ const Footer = () => {
                     <a href="#" className="hover:text-telecel-red transition-colors">Telecel Help</a>
                 </div>
                 <p>© {new Date().getFullYear()} Telecel Ghana. All rights reserved.</p>
-                <p className="mt-2 text-xs opacity-70">Empowering Staff & Students within you.</p>
+                <p className="mt-2 text-xs opacity-70">Empowering Students within you.</p>
             </div>
         </footer>
     );

@@ -5,7 +5,7 @@ const HeroSection = () => {
         <div id="home" className="relative h-[600px] w-full md:w-1/2 rounded-3xl overflow-hidden shadow-2xl group">
             <img
                 src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=2671&auto=format&fit=crop"
-                alt="Staff and students using mobile devices"
+                alt="Students using mobile devices"
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
             />
 
