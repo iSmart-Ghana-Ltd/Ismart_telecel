@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import OptimizedImage from './OptimizedImage';
 
 const BundleForm = () => {
@@ -7,8 +7,12 @@ const BundleForm = () => {
         return Date.now().toString() + Math.random().toString(36).substr(2, 9);
     };
 
+    // Initialize bundle code from localStorage or default
     const [network, setNetwork] = useState('Telecel');
-    const [bundleCode, setBundleCode] = useState('');
+    const [bundleCode, setBundleCode] = useState(() => {
+        const saved = localStorage.getItem('telecelBundleCode');
+        return saved || '797*10';
+    });
     const [phone, setPhone] = useState('');
     const [studentId, setStudentId] = useState('');
     const [showIdField, setShowIdField] = useState(false);
@@ -22,6 +26,13 @@ const BundleForm = () => {
     const [apiResponse, setApiResponse] = useState(null);
     const [bundleOptions, setBundleOptions] = useState([]);
     const [selectedBundle, setSelectedBundle] = useState('');
+
+    // Save bundle code to localStorage whenever it changes
+    useEffect(() => {
+        if (bundleCode) {
+            localStorage.setItem('telecelBundleCode', bundleCode);
+        }
+    }, [bundleCode]);
 
     // Format bundle code before submission
     const formatBundleCode = (code) => {
@@ -387,7 +398,6 @@ const BundleForm = () => {
                     <label className="block text-gray-700 font-semibold mb-2">Bundle Code</label>
                     <input
                         type="text"
-                        placeholder="Enter your student bundle code"
                         value={bundleCode}
                         onChange={(e) => setBundleCode(e.target.value)}
                         className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-telecel-red/20 focus:border-telecel-red transition-all"
