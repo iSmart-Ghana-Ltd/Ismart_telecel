@@ -399,8 +399,8 @@ const BundleForm = () => {
                     <input
                         type="text"
                         value={bundleCode}
-                        onChange={(e) => setBundleCode(e.target.value)}
-                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-telecel-red/20 focus:border-telecel-red transition-all"
+                        readOnly
+                        className="w-full bg-gray-100 border border-gray-200 rounded-xl px-4 py-3 text-gray-600 cursor-not-allowed"
                         required
                     />
                 </div>
@@ -578,12 +578,12 @@ const BundleForm = () => {
                             </svg>
                         </div>
                         <h3 className="text-xl font-bold text-gray-800 mb-2">Bundle Cancelled</h3>
-                        <p className="text-gray-600 mb-6">The bundle activation has been cancelled.</p>
+                        <p className="text-gray-600 mb-6">The bundle activation has been cancelled. You can start again with the same bundle code.</p>
                         <button
                             onClick={resetForm}
                             className="w-full bg-[#E30613] text-white py-3 rounded-xl font-medium hover:bg-[#CC050F] transition-colors"
                         >
-                            Got it!
+                            Start Again
                         </button>
                     </div>
                 </div>
