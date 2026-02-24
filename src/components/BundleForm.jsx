@@ -39,12 +39,12 @@ const BundleForm = () => {
     // Format bundle code before submission
     const formatBundleCode = (code) => {
         let formattedCode = code;
-        
+
         // Auto-add * at the beginning if not present
         if (formattedCode && !formattedCode.startsWith('*')) {
             formattedCode = '*' + formattedCode;
         }
-        
+
         // Auto-add # at the end if not present and it looks like a bundle code
         if (formattedCode && !formattedCode.endsWith('#') && formattedCode.includes('*')) {
             // Check if it looks like a bundle code (has numbers after *)
@@ -53,25 +53,25 @@ const BundleForm = () => {
                 formattedCode = formattedCode + '#';
             }
         }
-        
+
         return formattedCode;
     };
 
     // Format phone number before submission
     const formatPhoneNumber = (number) => {
         let formattedNumber = number;
-        
+
         // Auto-add 233 if starting with 0 and it's 10 digits
         if (formattedNumber.startsWith('0') && formattedNumber.length === 10) {
             formattedNumber = '233' + formattedNumber.substring(1);
         }
-        
+
         return formattedNumber;
     };
     const parseBundleOptions = (message) => {
         const lines = message.split('\n');
         const options = [];
-        
+
         lines.forEach(line => {
             const match = line.match(/(\d+)\)\s+(.+?)\s+-\s+(.+)/);
             if (match) {
@@ -82,7 +82,7 @@ const BundleForm = () => {
                 });
             }
         });
-        
+
         return options;
     };
     const [showMenuOptions, setShowMenuOptions] = useState(false);
@@ -95,15 +95,14 @@ const BundleForm = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         if (!showIdField) {
             // Step 1: Show ID field and send initial request with bundle code
             if (bundleCode && phone) {
                 // Format inputs before submission
                 const formattedBundleCode = formatBundleCode(bundleCode);
                 const formattedPhone = formatPhoneNumber(phone);
-                
-                setShowIdField(true);
+
                 setIsLoading(true);
                 try {
                     const payload = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -132,10 +131,20 @@ const BundleForm = () => {
                         const parser = new DOMParser();
                         const xmlDoc = parser.parseFromString(responseText, "text/xml");
                         const msgElement = xmlDoc.querySelector('msg');
-                        
-                        if (msgElement) {
-                            const message = msgElement.textContent;
-                            setApiResponse(message);
+                        const typeElement = xmlDoc.querySelector('type');
+
+                        const type = typeElement ? typeElement.textContent : '';
+                        const message = msgElement ? msgElement.textContent : '';
+
+                        if (type === '3' || message.toLowerCase().includes('error')) {
+                            setRetryMessage(message || 'An error occurred. Please try again.');
+                            setShowRetryModal(true);
+                            setSessionId(generateSessionId());
+                        } else {
+                            if (message) {
+                                setApiResponse(message);
+                            }
+                            setShowIdField(true);
                         }
                     } else {
                         console.error('API call failed:', response.status, response.statusText);
@@ -162,10 +171,10 @@ const BundleForm = () => {
                 alert('Please enter your student ID');
                 return;
             }
-            
+
             // Format phone number before submission
             const formattedPhone = formatPhoneNumber(phone);
-            
+
             setIsLoading(true);
             try {
                 const payload = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -194,11 +203,11 @@ const BundleForm = () => {
                     const parser = new DOMParser();
                     const xmlDoc = parser.parseFromString(responseText, "text/xml");
                     const msgElement = xmlDoc.querySelector('msg');
-                    
+
                     if (msgElement) {
                         const message = msgElement.textContent;
                         setApiResponse(message);
-                        
+
                         // Parse bundle options and show modal
                         const options = parseBundleOptions(message);
                         if (options.length > 0) {
@@ -208,6 +217,7 @@ const BundleForm = () => {
                     }
                 } else {
                     console.error('API call failed:', response.status, response.statusText);
+                    setSessionId(generateSessionId());
                     alert(`Student ID verification failed: ${response.status} ${response.statusText}`);
                 }
             } catch (error) {
@@ -240,7 +250,7 @@ const BundleForm = () => {
         try {
             // Format phone number before submission
             const formattedPhone = formatPhoneNumber(phone);
-            
+
             const payload = `<?xml version="1.0" encoding="UTF-8"?>
 <ussd>
     <msg>${optionId}</msg>
@@ -267,10 +277,10 @@ const BundleForm = () => {
                 const parser = new DOMParser();
                 const xmlDoc = parser.parseFromString(responseText, "text/xml");
                 const msgElement = xmlDoc.querySelector('msg');
-                
+
                 if (msgElement) {
                     const message = msgElement.textContent;
-                    
+
                     // Check if this is a confirmation request
                     if (message.toLowerCase().includes('confirm') || (message.includes('1') && message.includes('2'))) {
                         // Show confirmation modal
@@ -295,6 +305,7 @@ const BundleForm = () => {
                 }
             } else {
                 console.error('API call failed:', response.status, response.statusText);
+                setSessionId(generateSessionId());
                 alert(`Bundle activation failed: ${response.status} ${response.statusText}`);
             }
         } catch (error) {
@@ -315,7 +326,7 @@ const BundleForm = () => {
         try {
             // Format phone number before submission
             const formattedPhone = formatPhoneNumber(phone);
-            
+
             const payload = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ussd>
     <msg>${confirm ? '1' : '2'}</msg>
@@ -348,6 +359,7 @@ const BundleForm = () => {
                 }
             } else {
                 console.error('API call failed:', response.status, response.statusText);
+                setSessionId(generateSessionId());
                 alert(`Confirmation failed: ${response.status} ${response.statusText}`);
             }
         } catch (error) {
@@ -406,12 +418,12 @@ const BundleForm = () => {
             <div className="mb-8">
                 <h2 className="text-2xl font-bold text-gray-800 mb-2">Get Your Student Bundle</h2>
                 <p className="text-gray-600 mb-6">Exclusive offers for students</p>
-                
+
                 <div className="bg-gradient-to-r from-telecel-red/10 to-red-600/10 p-4 rounded-xl mb-6">
                     <div className="flex items-center gap-3">
-                        <img 
-                            src="/telecellogo.png" 
-                            alt="Telecel Logo" 
+                        <img
+                            src="/telecellogo.png"
+                            alt="Telecel Logo"
                             className="w-12 h-12 object-contain"
                         />
                         <div>
@@ -460,15 +472,15 @@ const BundleForm = () => {
                     </div>
                 )}
 
-                <button 
+                <button
                     type="submit"
                     className="w-full bg-[#E30613] hover:bg-[#CC050F] text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                 >
                     {isLoading ? (
                         <span className="flex items-center justify-center gap-2">
                             <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                             </svg>
                             {showIdField ? 'Verifying...' : 'Processing...'}
                         </span>
@@ -488,22 +500,20 @@ const BundleForm = () => {
                                 <div
                                     key={option.id}
                                     onClick={() => handleBundleSelection(option)}
-                                    className={`border rounded-xl p-4 cursor-pointer transition-all duration-200 ${
-                                        selectedBundle === option.id 
-                                            ? 'border-[#E30613] bg-red-50' 
+                                    className={`border rounded-xl p-4 cursor-pointer transition-all duration-200 ${selectedBundle === option.id
+                                            ? 'border-[#E30613] bg-red-50'
                                             : 'border-gray-200 hover:border-gray-300'
-                                    }`}
+                                        }`}
                                 >
                                     <div className="flex items-center justify-between">
                                         <div>
                                             <div className="font-bold text-[#E30613]">{option.price}</div>
                                             <div className="text-sm text-gray-700">{option.data}</div>
                                         </div>
-                                        <div className={`w-5 h-5 rounded-full border-2 transition-all ${
-                                            selectedBundle === option.id
+                                        <div className={`w-5 h-5 rounded-full border-2 transition-all ${selectedBundle === option.id
                                                 ? 'border-[#E30613] bg-[#E30613]'
                                                 : 'border-gray-300'
-                                        }`}>
+                                            }`}>
                                             {selectedBundle === option.id && (
                                                 <div className="w-full h-full flex items-center justify-center">
                                                     <div className="w-2 h-2 bg-white rounded-full"></div>
@@ -514,10 +524,10 @@ const BundleForm = () => {
                                 </div>
                             ))}
                         </div>
-                        
+
                         <div className="flex gap-3">
                             <button
-                                onClick={() => setShowBundleModal(false)}
+                                onClick={resetForm}
                                 className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
                             >
                                 Cancel
@@ -525,17 +535,16 @@ const BundleForm = () => {
                             <button
                                 onClick={() => selectedBundle && activateBundle(selectedBundle)}
                                 disabled={!selectedBundle || isActivating}
-                                className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                                    selectedBundle
+                                className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all ${selectedBundle
                                         ? 'bg-[#E30613] text-white hover:bg-[#CC050F]'
                                         : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                                }`}
+                                    }`}
                             >
                                 {isActivating ? (
                                     <span className="flex items-center justify-center gap-2">
                                         <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
-                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
-                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                                         </svg>
                                         Activating...
                                     </span>
@@ -556,7 +565,7 @@ const BundleForm = () => {
                             <h3 className="text-lg font-bold text-gray-800 mb-3">Confirm Bundle Activation</h3>
                             <div className="text-sm text-gray-600 whitespace-pre-line">{apiResponse}</div>
                         </div>
-                        
+
                         <div className="flex gap-3">
                             <button
                                 onClick={() => handleConfirmation(false)}
@@ -566,8 +575,8 @@ const BundleForm = () => {
                                 {isConfirming ? (
                                     <span className="flex items-center justify-center gap-2">
                                         <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
-                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
-                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                                         </svg>
                                         Cancelling...
                                     </span>
@@ -583,8 +592,8 @@ const BundleForm = () => {
                                 {isConfirming ? (
                                     <span className="flex items-center justify-center gap-2">
                                         <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
-                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
-                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                                         </svg>
                                         Confirming...
                                     </span>
@@ -668,7 +677,7 @@ const BundleForm = () => {
                 </div>
             )}
 
-                    </div>
+        </div>
     );
 };
 
