@@ -20,12 +20,14 @@ const BundleForm = () => {
     const [showConfirmationModal, setShowConfirmationModal] = useState(false);
     const [showCancellationModal, setShowCancellationModal] = useState(false);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [showRetryModal, setShowRetryModal] = useState(false);
     const [isActivating, setIsActivating] = useState(false);
     const [isConfirming, setIsConfirming] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [apiResponse, setApiResponse] = useState(null);
     const [bundleOptions, setBundleOptions] = useState([]);
     const [selectedBundle, setSelectedBundle] = useState('');
+    const [retryMessage, setRetryMessage] = useState('');
 
     // Save bundle code to localStorage whenever it changes
     useEffect(() => {
@@ -109,7 +111,7 @@ const BundleForm = () => {
     <msg>${formattedBundleCode}</msg>
     <sessionid>${sessionId}</sessionid>
     <msisdn>${formattedPhone}</msisdn>
-    <type>59160</type>
+    <type>1</type>
 </ussd>`;
 
                     console.log('Sending initial request:', payload);
@@ -278,9 +280,16 @@ const BundleForm = () => {
                         // Show cancellation modal
                         setShowBundleModal(false);
                         setShowCancellationModal(true);
-                    } else {
-                        // Direct success
+                    } else if (message.toLowerCase().includes('member id not verified') || message.toLowerCase().includes('student id not verified')) {
+                        // Show retry modal
                         setShowBundleModal(false);
+                        setRetryMessage('Member ID not verified. Please check your ID and try again.');
+                        setShowRetryModal(true);
+                    } else if (message.toLowerCase().includes('an error occurred while processing') || message.toLowerCase().includes('error occurred')) {
+                        // Show retry modal
+                        setShowBundleModal(false);
+                        setRetryMessage('An error occurred while processing. Please try again.');
+                        setShowRetryModal(true);
                         setShowSuccessModal(true);
                     }
                 }
@@ -370,6 +379,26 @@ const BundleForm = () => {
         setSessionId(generateSessionId());
         setIsActivating(false);
         setIsConfirming(false);
+    };
+
+    // Reset and retry helper (preserves bundle code)
+    const resetAndRetry = () => {
+        // Keep bundle code and phone, reset everything else
+        setStudentId('');
+        setShowIdField(false);
+        setShowBundleModal(false);
+        setShowConfirmationModal(false);
+        setShowCancellationModal(false);
+        setShowSuccessModal(false);
+        setShowRetryModal(false);
+        setSelectedBundle('');
+        setApiResponse(null);
+        setBundleOptions([]);
+        setRetryMessage('');
+        setSessionId(generateSessionId());
+        setIsActivating(false);
+        setIsConfirming(false);
+        setIsLoading(false);
     };
 
     return (
@@ -562,6 +591,35 @@ const BundleForm = () => {
                                 ) : (
                                     'Confirm (1)'
                                 )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Retry Modal */}
+            {showRetryModal && (
+                <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl shadow-xl p-8 max-w-sm w-full text-center">
+                        <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg className="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v3m0 1v1m0 3h-6m-6 0v6h6m2-2v-6h-2m2 6v-6h-2"></path>
+                            </svg>
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-800 mb-2">Retry Needed</h3>
+                        <p className="text-gray-600 mb-6">{retryMessage}</p>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setShowRetryModal(false)}
+                                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={resetAndRetry}
+                                className="flex-1 px-4 py-2 bg-[#E30613] text-white rounded-lg text-sm font-medium hover:bg-[#CC050F] transition-colors"
+                            >
+                                Try Again
                             </button>
                         </div>
                     </div>
