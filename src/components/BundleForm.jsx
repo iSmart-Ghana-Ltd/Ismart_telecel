@@ -2,9 +2,21 @@ import React, { useState, useEffect } from 'react';
 import OptimizedImage from './OptimizedImage';
 
 const BundleForm = () => {
-    // Generate unique session ID
     const generateSessionId = () => {
-        return Date.now().toString() + Math.random().toString(36).substr(2, 9);
+        // Generate a 14-character timestamp string (yyyyMMddHHmmss) which is
+        // a standard format for many telecommunications and USSD gateways.
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+
+        // Add a small 2-digit random number to ensure uniqueness if generated in the same second
+        const randomStr = String(Math.floor(Math.random() * 100)).padStart(2, '0');
+
+        return `${year}${month}${day}${hours}${minutes}${seconds}${randomStr}`;
     };
 
     // Initialize bundle code from localStorage or default
@@ -374,8 +386,43 @@ const BundleForm = () => {
         }
     };
 
+    // Helper to forcefully kill the session on the backend
+    const abortUSSDSession = async () => {
+        if (!sessionId || !phone) return;
+
+        try {
+            const formattedPhone = formatPhoneNumber(phone);
+            const payload = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ussd>
+    <msg>0</msg>
+    <sessionid>${sessionId}</sessionid>
+    <msisdn>${formattedPhone}</msisdn>
+    <type>3</type>
+</ussd>`;
+
+            console.log('Sending abort request:', payload);
+
+            // Send silently in the background
+            await fetch(API_BASE_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'text/xml',
+                    'Accept': 'text/xml',
+                },
+                body: payload
+            }).catch(e => console.error('Silent abort failed:', e));
+        } catch (error) {
+            console.error('Error aborting session:', error);
+        }
+    };
+
     // Reset form helper
     const resetForm = () => {
+        // Only abort if we progressed past the initial screen (have a phone number and open session)
+        if (showIdField) {
+            abortUSSDSession();
+        }
+
         // Keep bundle code, reset everything else
         setPhone('');
         setStudentId('');
@@ -395,6 +442,11 @@ const BundleForm = () => {
 
     // Reset and retry helper (preserves bundle code)
     const resetAndRetry = () => {
+        // Only abort if we progressed past the initial screen (have a phone number and open session)
+        if (showIdField) {
+            abortUSSDSession();
+        }
+
         // Keep bundle code and phone, reset everything else
         setStudentId('');
         setShowIdField(false);
@@ -501,8 +553,8 @@ const BundleForm = () => {
                                     key={option.id}
                                     onClick={() => handleBundleSelection(option)}
                                     className={`border rounded-xl p-4 cursor-pointer transition-all duration-200 ${selectedBundle === option.id
-                                            ? 'border-[#E30613] bg-red-50'
-                                            : 'border-gray-200 hover:border-gray-300'
+                                        ? 'border-[#E30613] bg-red-50'
+                                        : 'border-gray-200 hover:border-gray-300'
                                         }`}
                                 >
                                     <div className="flex items-center justify-between">
@@ -511,8 +563,8 @@ const BundleForm = () => {
                                             <div className="text-sm text-gray-700">{option.data}</div>
                                         </div>
                                         <div className={`w-5 h-5 rounded-full border-2 transition-all ${selectedBundle === option.id
-                                                ? 'border-[#E30613] bg-[#E30613]'
-                                                : 'border-gray-300'
+                                            ? 'border-[#E30613] bg-[#E30613]'
+                                            : 'border-gray-300'
                                             }`}>
                                             {selectedBundle === option.id && (
                                                 <div className="w-full h-full flex items-center justify-center">
@@ -536,8 +588,8 @@ const BundleForm = () => {
                                 onClick={() => selectedBundle && activateBundle(selectedBundle)}
                                 disabled={!selectedBundle || isActivating}
                                 className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all ${selectedBundle
-                                        ? 'bg-[#E30613] text-white hover:bg-[#CC050F]'
-                                        : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                    ? 'bg-[#E30613] text-white hover:bg-[#CC050F]'
+                                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                                     }`}
                             >
                                 {isActivating ? (
