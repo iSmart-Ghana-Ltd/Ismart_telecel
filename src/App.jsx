@@ -1,10 +1,39 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Header from './components/Header';
 import HeroSection from './components/HeroSection';
 import BundleForm from './components/BundleForm';
 import Footer from './components/Footer';
 
+
+// Current app version. Increment this whenever deploying major changes.
+const CURRENT_VERSION = "1.0.1";
+
 function App() {
+  useEffect(() => {
+    const checkVersion = async () => {
+      try {
+        // Add a timestamp to prevent the browser from caching this fetch request
+        const response = await fetch(`/version.json?t=${new Date().getTime()}`);
+        if (response.ok) {
+          const data = await response.json();
+          // If the server's version is different from the app's version, force a reload
+          if (data.version && data.version !== CURRENT_VERSION) {
+            console.log(`New version detected (${data.version}). Reloading...`);
+            window.location.reload(true);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to check app version:", error);
+      }
+    };
+
+    checkVersion();
+    
+    // Check every 5 minutes if the app stays open without refreshing
+    const interval = setInterval(checkVersion, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="min-h-screen bg-white flex flex-col">
       <Header />
