@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://gravitas.ismartghana.com',
+        target: 'https://ussd.telecel.ismartghana.com/api/vodafone',
         changeOrigin: true,
         secure: true
       }

@@ -99,7 +99,7 @@ const BundleForm = () => {
     };
     const [showMenuOptions, setShowMenuOptions] = useState(false);
     const [sessionId, setSessionId] = useState(generateSessionId());
-    const API_BASE_URL = import.meta.env.DEV ? '/api/vodafone' : 'https://gravitas.ismartghana.com/api/vodafone';
+    const API_BASE_URL = import.meta.env.DEV ? '/api/vodafone' : 'https://ussd.telecel.ismartghana.com/api/vodafone';
 
     const networks = [
         { name: 'Telecel', color: 'bg-telecel-red text-white', icon: '🔴' },
