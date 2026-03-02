@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Header from './components/Header';
 import HeroSection from './components/HeroSection';
 import BundleForm from './components/BundleForm';
@@ -6,9 +6,10 @@ import Footer from './components/Footer';
 
 
 // Current app version. Increment this whenever deploying major changes.
-const CURRENT_VERSION = "1.0.4";
+const CURRENT_VERSION = "1.0.5";
 
 function App() {
+  const [isOutdated, setIsOutdated] = useState(false);
   useEffect(() => {
     const checkVersion = async () => {
       try {
@@ -19,7 +20,7 @@ function App() {
           // If the server's version is different from the app's version, force a reload
           if (data.version && data.version !== CURRENT_VERSION) {
             console.log(`New version detected (${data.version}). Reloading...`);
-            window.location.reload(true);
+            setIsOutdated(true);
           }
         }
       } catch (error) {
@@ -37,6 +38,17 @@ function App() {
   return (
     <div className="min-h-screen bg-white flex flex-col">
       <Header />
+      {isOutdated && (
+        <div className="bg-[#E30613] text-white py-2 px-4 shadow-lg text-center sticky top-0 z-[100] animate-fade-in flex items-center justify-center gap-4">
+          <span className="font-medium text-sm md:text-base">A new update is available for better performance!</span>
+          <button 
+            onClick={() => window.location.reload(true)}
+            className="bg-white text-[#E30613] px-3 py-1 rounded-lg text-xs md:text-sm font-bold hover:bg-gray-100 transition-all active:scale-95 shadow-sm"
+          >
+            Update Now
+          </button>
+        </div>
+      )}
 
       <main className="container mx-auto px-4 py-12 md:py-16 flex-grow">
         <div id="home" className="flex flex-col md:flex-row gap-8 lg:gap-16 items-start justify-center max-w-6xl mx-auto">
