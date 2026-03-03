@@ -42,7 +42,18 @@ function App() {
         <div className="bg-[#E30613] text-white py-2 px-4 shadow-lg text-center sticky top-0 z-[100] animate-fade-in flex items-center justify-center gap-4">
           <span className="font-medium text-sm md:text-base">A new update is available for better performance!</span>
           <button 
-            onClick={() => window.location.reload(true)}
+            onClick={() => {
+              // 1. Clear caches if available
+              if ('caches' in window) {
+                caches.keys().then(names => {
+                  for (let name of names) caches.delete(name);
+                });
+              }
+              // 2. Force a completely new request by appending a timestamp to URL
+              const url = new URL(window.location.href);
+              url.searchParams.set('v', Date.now());
+              window.location.href = url.toString();
+            }}
             className="bg-white text-[#E30613] px-3 py-1 rounded-lg text-xs md:text-sm font-bold hover:bg-gray-100 transition-all active:scale-95 shadow-sm"
           >
             Update Now
