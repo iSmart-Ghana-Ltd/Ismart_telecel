@@ -6,7 +6,7 @@ import Footer from './components/Footer';
 
 
 // Current app version. Increment this whenever deploying major changes.
-const CURRENT_VERSION = "1.0.5";
+const CURRENT_VERSION = "1.0.6";
 
 function App() {
   const [isOutdated, setIsOutdated] = useState(false);

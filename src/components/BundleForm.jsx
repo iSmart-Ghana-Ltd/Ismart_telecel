@@ -143,9 +143,6 @@ const BundleForm = () => {
                         const parser = new DOMParser();
                         const xmlDoc = parser.parseFromString(responseText, "text/xml");
                         const msgElement = xmlDoc.querySelector('msg');
-                        const typeElement = xmlDoc.querySelector('type');
-
-                        const type = typeElement ? typeElement.textContent : '';
                         const message = msgElement ? msgElement.textContent : '';
 
                         if (type === '3' || message.toLowerCase().includes('error')) {
@@ -217,7 +214,6 @@ const BundleForm = () => {
                     const msgElement = xmlDoc.querySelector('msg');
 
                     if (msgElement) {
-                        const message = msgElement.textContent;
                         setApiResponse(message);
 
                         // Parse bundle options and show modal
@@ -268,7 +264,7 @@ const BundleForm = () => {
     <msg>${optionId}</msg>
     <sessionid>${sessionId}</sessionid>
     <msisdn>${formattedPhone}</msisdn>
-    <type>59160</type>
+    <type>1</type>
 </ussd>`;
 
             console.log('Sending bundle selection:', payload);
@@ -290,8 +286,22 @@ const BundleForm = () => {
                 const xmlDoc = parser.parseFromString(responseText, "text/xml");
                 const msgElement = xmlDoc.querySelector('msg');
 
+                
+                const typeElement = xmlDoc.querySelector('type');
+                const type = typeElement ? typeElement.textContent : '';
+
                 if (msgElement) {
                     const message = msgElement.textContent;
+                    if (type === '3') {
+                        setRetryMessage(message || 'The session was released by the server. Please try again.');
+                        setShowRetryModal(true);
+                        setSessionId(generateSessionId());
+                        return;
+                    }
+
+
+
+                    
 
                     // Check if this is a confirmation request
                     if (message.toLowerCase().includes('confirm') || (message.includes('1') && message.includes('2'))) {
