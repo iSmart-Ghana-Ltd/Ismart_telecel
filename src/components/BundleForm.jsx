@@ -105,68 +105,89 @@ const BundleForm = () => {
         { name: 'Telecel', color: 'bg-telecel-red text-white', icon: '🔴' },
     ];
 
+        const USSD_TYPE = {
+        INITIATION: '1',
+        CONTINUATION: '1',
+        RELEASE: '3'
+    };
+
+    const sendUSSDRequest = async (msg, type = USSD_TYPE.CONTINUATION, currentSessionId = sessionId) => {
+        const formattedPhone = formatPhoneNumber(phone);
+        const payload = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ussd>
+    <msg>${msg}</msg>
+    <sessionid>${currentSessionId}</sessionid>
+    <msisdn>${formattedPhone}</msisdn>
+    <type>${type}</type>
+</ussd>`;
+
+        console.log(`Sending USSD (${type}):`, payload);
+
+        try {
+            const response = await fetch(API_BASE_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'text/xml',
+                    'Accept': 'text/xml',
+                },
+                body: payload
+            });
+
+            const responseText = await response.text();
+            console.log('API Response:', responseText);
+
+            if (!response.ok) {
+                return { ok: false, status: response.status, statusText: response.statusText };
+            }
+
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(responseText, "text/xml");
+            const msgNode = xmlDoc.querySelector('msg');
+            const typeNode = xmlDoc.querySelector('type');
+
+            return {
+                ok: true,
+                message: msgNode ? msgNode.textContent : '',
+                type: typeNode ? typeNode.textContent : '',
+                xmlDoc
+            };
+        } catch (error) {
+            console.error('USSD Request Error:', error);
+            throw error;
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
         if (!showIdField) {
             // Step 1: Show ID field and send initial request with bundle code
             if (bundleCode && phone) {
-                // Format inputs before submission
                 const formattedBundleCode = formatBundleCode(bundleCode);
-                const formattedPhone = formatPhoneNumber(phone);
-
                 setIsLoading(true);
                 try {
-                    const payload = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<ussd>
-    <msg>${formattedBundleCode}</msg>
-    <sessionid>${sessionId}</sessionid>
-    <msisdn>${formattedPhone}</msisdn>
-    <type>1</type>
-</ussd>`;
+                    const result = await sendUSSDRequest(formattedBundleCode, USSD_TYPE.INITIATION);
 
-                    console.log('Sending initial request:', payload);
-
-                    const response = await fetch(API_BASE_URL, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'text/xml',
-                            'Accept': 'text/xml',
-                        },
-                        body: payload
-                    });
-
-                    const responseText = await response.text();
-                    console.log('API Response:', responseText);
-
-                    if (response.ok) {
-                        const parser = new DOMParser();
-                        const xmlDoc = parser.parseFromString(responseText, "text/xml");
-                        const msgElement = xmlDoc.querySelector('msg');
-                        const message = msgElement ? msgElement.textContent : '';
-
-                        if (type === '3' || message.toLowerCase().includes('error')) {
+                    if (result.ok) {
+                        const { message, type } = result;
+                        if (type === USSD_TYPE.RELEASE || message.toLowerCase().includes('error')) {
                             setRetryMessage(message || 'An error occurred. Please try again.');
                             setShowRetryModal(true);
                             setSessionId(generateSessionId());
                         } else {
-                            if (message) {
-                                setApiResponse(message);
-                            }
+                            if (message) setApiResponse(message);
                             setShowIdField(true);
                         }
                     } else {
-                        console.error('API call failed:', response.status, response.statusText);
-                        if (response.status === 404) {
-                            alert('API endpoint not found (404). The API URL may be incorrect. Please check the server configuration.');
+                        if (result.status === 404) {
+                            alert('API endpoint not found (404). Please check the server configuration.');
                         } else {
-                            alert(`Request failed: ${response.status} ${response.statusText}`);
+                            alert(`Request failed: ${result.status} ${result.statusText}`);
                         }
                     }
                 } catch (error) {
-                    console.error('Error submitting form:', error);
                     if (error.message.includes('CORS') || error.message.includes('Cross-Origin')) {
-                        alert('CORS Error: The API server is not configured for cross-origin requests. Please contact the server administrator to enable CORS for this domain.');
+                        alert('CORS Error: The API server is not configured for cross-origin requests.');
                     } else {
                         alert('An error occurred. Please check your connection and try again.');
                     }
@@ -175,63 +196,46 @@ const BundleForm = () => {
                 }
             }
         } else if (!showBundleModal) {
-            // Step 2: Send student ID and get bundle options
-            if (!studentId.trim()) {
-                alert('Please enter your student ID');
-                return;
-            }
-
-            // Format phone number before submission
-            const formattedPhone = formatPhoneNumber(phone);
-
+            // Step 2: Submit staff ID
             setIsLoading(true);
             try {
-                const payload = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<ussd>
-    <msg>${studentId}</msg>
-    <sessionid>${sessionId}</sessionid>
-    <msisdn>${formattedPhone}</msisdn>
-    <type>1</type>
-</ussd>`;
+                const result = await sendUSSDRequest(studentStaffId, USSD_TYPE.CONTINUATION);
 
-                console.log('Sending student ID:', payload);
+                if (result.ok) {
+                    const { message } = result;
 
-                const response = await fetch(API_BASE_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'text/xml',
-                        'Accept': 'text/xml',
-                    },
-                    body: payload
-                });
+                    // Check for member ID verification failure
+                    if (message.toLowerCase().includes('member id not verified') || message.toLowerCase().includes('not verified')) {
+                        setRetryMessage('Staff ID verification failed. Please check your ID and try again.');
+                        setShowRetryModal(true);
+                        return;
+                    }
 
-                const responseText = await response.text();
-                console.log('Student ID Response:', responseText);
+                    // Check for generic processing error
+                    if (message.toLowerCase().includes('an error occurred while processing')) {
+                        setSessionId(generateSessionId());
+                        resetAndRetry();
+                        setRetryMessage('An error occurred. Please try again.');
+                        setShowRetryModal(true);
+                        return;
+                    }
 
-                if (response.ok) {
-                    const parser = new DOMParser();
-                    const xmlDoc = parser.parseFromString(responseText, "text/xml");
-                    const msgElement = xmlDoc.querySelector('msg');
+                    setApiResponse(message);
 
-                    if (msgElement) {
-                        setApiResponse(message);
-
-                        // Parse bundle options and show modal
-                        const options = parseBundleOptions(message);
-                        if (options.length > 0) {
-                            setBundleOptions(options);
-                            setShowBundleModal(true);
-                        }
+                    // Parse bundle options and show modal
+                    const options = parseBundleOptions(message);
+                    if (options.length > 0) {
+                        setBundleOptions(options);
+                        setShowBundleModal(true);
                     }
                 } else {
-                    console.error('API call failed:', response.status, response.statusText);
                     setSessionId(generateSessionId());
-                    alert(`Student ID verification failed: ${response.status} ${response.statusText}`);
+                    setRetryMessage('Staff ID verification failed. Please check your ID and try again.');
+                    setShowRetryModal(true);
                 }
             } catch (error) {
-                console.error('Error submitting student ID:', error);
                 if (error.message.includes('CORS') || error.message.includes('Cross-Origin')) {
-                    alert('CORS Error: The API server is not configured for cross-origin requests. Please contact the server administrator to enable CORS for this domain.');
+                    alert('CORS Error: The API server is not configured for cross-origin requests.');
                 } else {
                     alert('An error occurred. Please check your connection and try again.');
                 }
@@ -240,12 +244,13 @@ const BundleForm = () => {
             }
         } else if (!selectedBundle) {
             // Step 3: Show bundle options for selection
-            return; // Just show the options, don't proceed
+            return;
         } else {
             // Step 4: Activate selected bundle
             activateBundle(selectedBundle);
         }
     };
+
 
     // Handle bundle selection from modal
     const handleBundleSelection = (option) => {
@@ -253,87 +258,38 @@ const BundleForm = () => {
     };
 
     // Activate selected bundle
-    const activateBundle = async (optionId) => {
+        const activateBundle = async (optionId) => {
         setIsActivating(true);
         try {
-            // Format phone number before submission
-            const formattedPhone = formatPhoneNumber(phone);
+            const result = await sendUSSDRequest(optionId, USSD_TYPE.CONTINUATION);
 
-            const payload = `<?xml version="1.0" encoding="UTF-8"?>
-<ussd>
-    <msg>${optionId}</msg>
-    <sessionid>${sessionId}</sessionid>
-    <msisdn>${formattedPhone}</msisdn>
-    <type>1</type>
-</ussd>`;
+            if (result.ok) {
+                const { message, type } = result;
+                if (type === USSD_TYPE.RELEASE) {
+                    setRetryMessage(message || 'The session was released by the server. Please try again.');
+                    setShowRetryModal(true);
+                    setSessionId(generateSessionId());
+                    return;
+                }
 
-            console.log('Sending bundle selection:', payload);
-
-            const response = await fetch(API_BASE_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'text/xml',
-                    'Accept': 'text/xml',
-                },
-                body: payload
-            });
-
-            const responseText = await response.text();
-            console.log('Bundle Selection Response:', responseText);
-
-            if (response.ok) {
-                const parser = new DOMParser();
-                const xmlDoc = parser.parseFromString(responseText, "text/xml");
-                const msgElement = xmlDoc.querySelector('msg');
-
-                
-                const typeElement = xmlDoc.querySelector('type');
-                const type = typeElement ? typeElement.textContent : '';
-
-                if (msgElement) {
-                    const message = msgElement.textContent;
-                    if (type === '3') {
-                        setRetryMessage(message || 'The session was released by the server. Please try again.');
-                        setShowRetryModal(true);
-                        setSessionId(generateSessionId());
-                        return;
-                    }
-
-
-
-                    
-
-                    // Check if this is a confirmation request
-                    if (message.toLowerCase().includes('confirm') || (message.includes('1') && message.includes('2'))) {
-                        // Show confirmation modal
-                        setApiResponse(message);
-                        setShowConfirmationModal(true);
-                    } else if (message.toLowerCase().includes('cancelled') || message.toLowerCase().includes('bundle cancelled')) {
-                        // Show cancellation modal
-                        setShowBundleModal(false);
-                        setShowCancellationModal(true);
-                    } else if (message.toLowerCase().includes('member id not verified') || message.toLowerCase().includes('student id not verified')) {
-                        // Show retry modal
-                        setShowBundleModal(false);
-                        setRetryMessage('Member ID not verified. Please check your ID and try again.');
-                        setShowRetryModal(true);
-                    } else if (message.toLowerCase().includes('an error occurred while processing') || message.toLowerCase().includes('error occurred')) {
-                        // Show retry modal
-                        setShowBundleModal(false);
-                        setRetryMessage('An error occurred while processing. Please try again.');
-                        setShowRetryModal(true);
-                        setShowSuccessModal(true);
-                    }
+                // Check if this is a confirmation request
+                if (message.toLowerCase().includes('confirm') || (message.includes('1') && message.includes('2'))) {
+                    setApiResponse(message);
+                    setShowConfirmationModal(true);
+                } else if (message.toLowerCase().includes('cancelled') || message.toLowerCase().includes('bundle cancelled')) {
+                    setShowBundleModal(false);
+                    setShowCancellationModal(true);
+                } else {
+                    setShowBundleModal(false);
+                    setShowSuccessModal(true);
                 }
             } else {
-                console.error('API call failed:', response.status, response.statusText);
                 setSessionId(generateSessionId());
-                alert(`Bundle activation failed: ${response.status} ${response.statusText}`);
+                alert(`Bundle activation failed: ${result.status} ${result.statusText}`);
             }
         } catch (error) {
-            console.error('Error activating bundle:', error);
             if (error.message.includes('CORS') || error.message.includes('Cross-Origin')) {
-                alert('CORS Error: The API server is not configured for cross-origin requests. Please contact the server administrator to enable CORS for this domain.');
+                alert('CORS Error: The API server is not configured for cross-origin requests.');
             } else {
                 alert('An error occurred. Please check your connection and try again.');
             }
@@ -342,36 +298,14 @@ const BundleForm = () => {
         }
     };
 
+
     // Handle confirmation response
-    const handleConfirmation = async (confirm) => {
+        const handleConfirmation = async (confirm) => {
         setIsConfirming(true);
         try {
-            // Format phone number before submission
-            const formattedPhone = formatPhoneNumber(phone);
+            const result = await sendUSSDRequest(confirm ? '1' : '2', USSD_TYPE.CONTINUATION);
 
-            const payload = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<ussd>
-    <msg>${confirm ? '1' : '2'}</msg>
-    <sessionid>${sessionId}</sessionid>
-    <msisdn>${formattedPhone}</msisdn>
-    <type>1</type>
-</ussd>`;
-
-            console.log('Sending confirmation:', payload);
-
-            const response = await fetch(API_BASE_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'text/xml',
-                    'Accept': 'text/xml',
-                },
-                body: payload
-            });
-
-            const responseText = await response.text();
-            console.log('Confirmation Response:', responseText);
-
-            if (response.ok) {
+            if (result.ok) {
                 if (confirm) {
                     setShowConfirmationModal(false);
                     setShowSuccessModal(true);
@@ -380,14 +314,12 @@ const BundleForm = () => {
                     setShowCancellationModal(true);
                 }
             } else {
-                console.error('API call failed:', response.status, response.statusText);
                 setSessionId(generateSessionId());
-                alert(`Confirmation failed: ${response.status} ${response.statusText}`);
+                alert(`Confirmation failed: ${result.status} ${result.statusText}`);
             }
         } catch (error) {
-            console.error('Error sending confirmation:', error);
             if (error.message.includes('CORS') || error.message.includes('Cross-Origin')) {
-                alert('CORS Error: The API server is not configured for cross-origin requests. Please contact the server administrator to enable CORS for this domain.');
+                alert('CORS Error: The API server is not configured for cross-origin requests.');
             } else {
                 alert('An error occurred. Please check your connection and try again.');
             }
@@ -395,6 +327,7 @@ const BundleForm = () => {
             setIsConfirming(false);
         }
     };
+
 
     // Helper to forcefully kill the session on the backend
     const abortUSSDSession = async () => {
