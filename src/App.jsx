@@ -11,6 +11,8 @@ const CURRENT_VERSION = "1.1.0";
 function App() {
   const [isOutdated, setIsOutdated] = useState(false);
   useEffect(() => {
+    let autoReloadTimer;
+
     const checkVersion = async () => {
       try {
         // Add a timestamp to prevent the browser from caching this fetch request
@@ -19,8 +21,17 @@ function App() {
           const data = await response.json();
           // If the server's version is different from the app's version, force a reload
           if (data.version && data.version !== CURRENT_VERSION) {
-            console.log(`New version detected (${data.version}). Reloading...`);
+            console.log(`New version detected (${data.version})...`);
             setIsOutdated(true);
+            
+            // Automatically reload after 30 seconds to ensure the user gets the update
+            if (!autoReloadTimer) {
+              autoReloadTimer = setTimeout(() => {
+                const url = new URL(window.location.href);
+                url.searchParams.set('v', Date.now());
+                window.location.href = url.toString();
+              }, 30000); // 30 seconds
+            }
           }
         }
       } catch (error) {
@@ -32,7 +43,10 @@ function App() {
     
     // Check every 5 minutes if the app stays open without refreshing
     const interval = setInterval(checkVersion, 5 * 60 * 1000);
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      if (autoReloadTimer) clearTimeout(autoReloadTimer);
+    };
   }, []);
 
   return (
