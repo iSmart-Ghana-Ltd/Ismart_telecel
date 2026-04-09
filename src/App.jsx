@@ -14,7 +14,7 @@ function App() {
     const checkVersion = async () => {
       try {
         // Add a timestamp to prevent the browser from caching this fetch request
-        const response = await fetch(`/version.json?t=${new Date().getTime()}`);
+        const response = await fetch(`version.json?t=${new Date().getTime()}`);
         if (response.ok) {
           const data = await response.json();
           // If the server's version is different from the app's version, force a reload
