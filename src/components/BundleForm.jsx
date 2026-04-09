@@ -196,17 +196,17 @@ const BundleForm = () => {
                 }
             }
         } else if (!showBundleModal) {
-            // Step 2: Submit staff ID
+            // Step 2: Submit student ID
             setIsLoading(true);
             try {
-                const result = await sendUSSDRequest(studentStaffId, USSD_TYPE.CONTINUATION);
+                const result = await sendUSSDRequest(studentId, USSD_TYPE.CONTINUATION);
 
                 if (result.ok) {
                     const { message } = result;
 
-                    // Check for member ID verification failure
-                    if (message.toLowerCase().includes('member id not verified') || message.toLowerCase().includes('not verified')) {
-                        setRetryMessage('Staff ID verification failed. Please check your ID and try again.');
+                    // Check for student ID verification failure
+                    if (message.toLowerCase().includes('member id not verified') || message.toLowerCase().includes('not verified') || message.toLowerCase().includes('id not verified')) {
+                        setRetryMessage('Student ID verification failed. Please check your ID and try again.');
                         setShowRetryModal(true);
                         return;
                     }
@@ -230,7 +230,7 @@ const BundleForm = () => {
                     }
                 } else {
                     setSessionId(generateSessionId());
-                    setRetryMessage('Staff ID verification failed. Please check your ID and try again.');
+                    setRetryMessage('Student ID verification failed. Please check your ID and try again.');
                     setShowRetryModal(true);
                 }
             } catch (error) {
@@ -487,7 +487,7 @@ const BundleForm = () => {
 
             {/* Bundle Selection Modal */}
             {showBundleModal && (
-                <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-2xl shadow-xl p-8 max-w-sm w-full">
                         <h3 className="text-lg font-bold text-gray-800 mb-4">Select a Bundle</h3>
                         <div className="space-y-3 mb-6">
@@ -554,7 +554,7 @@ const BundleForm = () => {
 
             {/* Confirmation Modal */}
             {showConfirmationModal && (
-                <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full">
                         <div className="text-center mb-6">
                             <h3 className="text-lg font-bold text-gray-800 mb-3">Confirm Bundle Activation</h3>
@@ -603,7 +603,7 @@ const BundleForm = () => {
 
             {/* Retry Modal */}
             {showRetryModal && (
-                <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-2xl shadow-xl p-8 max-w-sm w-full text-center">
                         <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
                             <svg className="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -632,7 +632,7 @@ const BundleForm = () => {
 
             {/* Cancellation Modal */}
             {showCancellationModal && (
-                <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-2xl shadow-xl p-8 max-w-sm w-full text-center">
                         <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                             <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
